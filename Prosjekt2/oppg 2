@@ -1,0 +1,25 @@
+import scipy
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+from ny import makeGrid
+
+
+def U_ij(lengde):
+    U_ij = np.zeros((lengde+1, lengde+1))
+    print(U_ij)
+
+    for i in range (1,(lengde+1)):
+         for j in range (1,lengde +1):
+            np.set_printoptions(precision=2)
+            U_ij[i,j] = np.random.uniform(low = (-3.47*10**(-21)), high= (-10.4*10**(-21)))
+            np.fill_diagonal(U_ij,0)
+
+    for z in range (1,lengde):
+            U_ij[z,z] = 0
+            U_ij[z+1,z] = 0
+            U_ij[z,z+1] = 0
+
+    return U_ij
+

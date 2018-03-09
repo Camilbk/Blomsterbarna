@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+from energy import getEnergy
+from energy import U_ij
 
 def makeGrid(N):  # nxn matrise
     grid = np.zeros((N+2, N+2)).astype(np.int16)
@@ -23,19 +25,14 @@ def rigid_rot(grid,x,lengde):
         rot = grid.copy()
         rot[rot <= x]=0
 
-
         rigid=grid.copy()
         rigid[rigid > x]=0
-
-
     else:
         rot = grid.copy()
         rot[rot >= x] = 0
 
-
         rigid = grid.copy()
         rigid[rigid < x] = 0
-
 
     return rot, rigid
 
@@ -47,13 +44,15 @@ def isLegalTwist(twistedgrid, grid):
     #print('bol = ', bol)
     return bol
 
-def twist(grid, lengde):
+def twist(grid, lengde,T):
     twist = False
-    x = np.random.randint(1, high=lengde+1)
+    kb = 1.38 * np.exp(-23)
+    B = 1 / (kb * T)
 
     while(twist == False):
         rot, rigid = rigid_rot(grid, x, lengde)
 
+        x = np.random.randint(1, high=lengde + 1)
         n = np.random.randint(2, size=1)  # clockwise
 
         row_nonzero = np.count_nonzero(np.count_nonzero(rot, axis=1)) #teller rader med tall i
@@ -75,14 +74,21 @@ def twist(grid, lengde):
 
         twist = isLegalTwist(twisted_matrix,grid)
 
+    E2 = getEnergy(twisted_matrix, U_ij(15))
+    E1 = getEnergy(grid, U_ij(15))
+    r = np.random.uniform(0,1)
 
-    return twisted_matrix
+    if E2 <= E1:
+        return twisted_matrix
+    elif r < np.exp(-B*(E2-E1)):
+        return twisted_matrix
+    else:
+        return grid
 
-def twist_execute(antall_twists,lengde):
-    twisted_matrix = makeGrid(lengde)
-    for i in range(antall_twists):
+def twist_execute(antall_twists,lengde,twisted_matrix, T):
+    for i in range(np.round(antall_twists)):
         grid = twisted_matrix
-        polymer = twist(grid, lengde)
+        polymer = twist(grid, lengde, T)
         twisted_matrix = polymer
 
     return twisted_matrix
@@ -90,7 +96,18 @@ def twist_execute(antall_twists,lengde):
 
 
 
-#def main():
+def main():
+    polymer = makeGrid(15)
+    twist(polymer,15,500)
+
+
+
+
+
+
+
+
+
 
 
 

@@ -78,9 +78,10 @@ def twist(grid, lengde):
 
     return twisted_matrix
 
-def twist_execute(antall_twists,lengde):
+def twist_execute(temp,lengde):
     twisted_matrix = makeGrid(lengde)
-    for i in range(antall_twists):
+    d = 11000*np.exp(-0.0015*temp)
+    for i in range(d):
         grid = twisted_matrix
         polymer = twist(grid, lengde)
         twisted_matrix = polymer
@@ -91,6 +92,17 @@ def twist_execute(antall_twists,lengde):
 
 
 #def main():
+
+
+
+
+
+
+
+
+
+
+
 
 
 

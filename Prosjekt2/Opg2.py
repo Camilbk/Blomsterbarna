@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-from ny import makeGrid
+from Vitber.Prosjekt2.ny import makeGrid
 
 '''
 Define a straight polymer consisting of 15 monomers. Follow the example in Sec. 1.4, and plot the mean energy, ⟨E⟩,

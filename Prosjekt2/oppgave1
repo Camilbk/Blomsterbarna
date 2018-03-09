@@ -16,8 +16,8 @@ def findX(grid, x):  # Finn posisjonen til monomeren som det skal twistes rundt.
     return row, col
 
 
-def rigid_rot(grid, x, lengde):
-    if (x > np.floor(lengde / 2) + 1):
+def rigid_rot(grid, x, N):
+    if (x > np.floor(N / 2) + 1):
         rot = grid.copy()
         rot[rot <= x] = 0
 
@@ -73,21 +73,21 @@ def twist(grid, lengde):
     return twisted_matrix
 
 
-def twist_execute(antall_twists, lengde):
-    twisted_matrix = makeGrid(lengde)
+def twist_execute(antall_twists, N):
+    twisted_matrix = makeGrid(N)
     # print(twisted_matrix, '\n')
     for i in range(antall_twists):
         grid = twisted_matrix
-        polymer = twist(grid, lengde)
+        polymer = twist(grid, N)
         twisted_matrix = polymer
         # print(polymer, '\n') # Printer ut polymeren for hver twist.
     return twisted_matrix
 
 
 def main():
-    lengde = 15  # Lengden til polymeren.
+    N = 15  # Lengden til polymeren.
     antall_twists = 3  # Antall ganger polymeren skal twistes.
-    twisted_matrix = twist_execute(antall_twists, lengde)
+    twisted_matrix = twist_execute(antall_twists, N)
     print(twisted_matrix)
 
 

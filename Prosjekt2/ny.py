@@ -58,8 +58,10 @@ def twist(grid, lengde, T):
 
     while (twist == False):
         x = np.random.randint(1, lengde + 1, None)
+        print(x, 'x')
 
         n = np.random.randint(2, size=None)  # genererer clockwise
+        print(n, 'n')
 
         rot, rigid = rigid_rot(grid, x, lengde)
 
@@ -95,6 +97,7 @@ def twist(grid, lengde, T):
 
 def twist_execute(antall_twists, lengde, grid, T):
     for i in range(np.round(antall_twists)):
+        print('løkken har gjørt ', i, 'ganger')
         temp = grid
         twisted_matrix = twist(temp, lengde, T)
         grid = twisted_matrix
@@ -153,11 +156,11 @@ def plotEnergy(grid):
     Temp = np.zeros(1500)
 
     for T in range(1, 1500, 1):
-        print('\nT = ', T)
         antall_twists = np.floor(11000 * np.exp(-0.0015 * (T - 0.9999999))).astype(int)
         polymer = twist_execute(antall_twists, 15, grid, T)
         E = np.append(E, (getEnergy(polymer, U)))
         Temp = np.append(Temp, (T - 0.9999999))
+        print(T)
 
     plt.plot(Temp, E)
     plt.title(r'Gjennomsnittsenergi, $\langle E \rangle$, som funksjon av temperatur, $T$')
@@ -177,20 +180,21 @@ def plotBindingEnergy(grid):
     U = U_ij(15)
     E = np.zeros(5000)
     twists = np.zeros(5000)
-    temp = 500
+    temp = 0
 
     for twist in range(1, 5000):
-        print('twist = ', twist, '\n')
         polymer = twist_execute(twist, 15, grid, temp)
         E = np.append(E, (getEnergy(polymer, U)))
         twists = np.append(twists, twist)
+        print(twist)
+
 
     plt.plot(twists, E)
-    plt.title(r'Bindingsenergi, $E$, som funksjon av antall tvister med $T=500$ K') # TITTEL
+    plt.title(r'Bindingsenergi, $E$, som funksjon av antall tvister med $T=0$ K') # TITTEL
     plt.xlabel('Antall tvister')
     plt.ylabel(r'$E$')
     plt.legend()
-    plt.savefig('plotBindingEnergy_500K.pdf') # NAVN
+    plt.savefig('plotBindingEnergy_0K.pdf') # NAVN
     plt.show()
 
     end = timeit.timeit()
@@ -198,26 +202,53 @@ def plotBindingEnergy(grid):
 
 
 
+
+
 ########## OPPGAVE 3 ##########
+
 
 
 ########## OPPGAVE 4 ##########
 
-def gradual_cooling(grid):
-    temperature = np.linspace(1500, 0, 50)
-    number_of_twists = np.linspace(0, 30000, 50)
+def gradualCooling(grid):
+    #number_of_twists = np.linspace(0, 30000, 50) #definerer x-aksen
 
-    E = np.zeros(1500)
-    U = U_ij(15)
+    E = np.zeros(50)
+    lengde_polymer = 15
+    U = U_ij(lengde_polymer)
 
-    for t in range(temperature):
-        polymer = twist_execute(600, 15, grid, t)
-        E = np.append(E.getEnergy(polymer, U))
+
+    for T in range (1500,-30): #Finner energien for temperaturer som synker med 30K  fra 1500K til 0K
+        polymer=twist_execute(600,lengde_polymer,grid,T) #Tvister polymeret 600 ganger for hver temperatur
+        E = np.append(E.getEnergy(polymer,U))
+        twist = np.append(twist,600)
+
+
+    plt.plot(twist, E)
+    plt.title(r'Energi, $\langle E \rangle$ ved gradvis kjøling av protein, som funksjon av antall tvister $T$')
+    plt.xlabel(r'Antall tvister')
+    plt.ylabel(r'$\langle E \rangle$')
+    plt.legend()
+    plt.savefig('gradualCooling.pdf')
+    plt.show()
+
+
 
 
 def main():
     polymer = makeGrid(15)
-    plotEnergy(polymer)
+    gradualCooling(polymer)
 
 
 main()
+
+
+
+
+
+
+
+
+
+
+

@@ -23,7 +23,7 @@ def findX(grid, x):
     return row, col
 
 def rigid_rot(grid,x,lengde):
-    if (x > np.floor(lengde/2)+1):
+    if (x > math.floor((lengde/2)+1)):
         rot = grid.copy()
         rot[rot <= x]=0
 
@@ -52,7 +52,7 @@ def twist(grid, lengde,T):
     B = 1 / (kb * T)
 
     while(twist == False):
-        x = random.randint(1,lengde + 1)
+        x = np.random.randint(1,lengde + 1,None)
         print(x, 'x')
 
         n = np.random.randint(2, size=None) #genererer clockwise
@@ -146,7 +146,7 @@ def plotEnergy(grid):
 
     for T in range (1,1500,1):
         antall_twists = np.floor(11000 * np.exp(-0.0015 * (T-0.9999999))).astype(int)
-        polymer = twist_execute(antall_twists,15, grid)
+        polymer = twist_execute(antall_twists,15, grid, T)
         E = np.append(E,(getEnergy(polymer,U)))
         Temp = np.append(Temp, (T-0.9999999))
         print(T)
@@ -180,9 +180,7 @@ def plotBindingEnergy(grid):
 
 def main():
     polymer = makeGrid(15)
-    print(polymer)
-    print(twist(polymer,15,500))
-    print(twist_execute(2,polymer,15,500))
+    plotEnergy(polymer)
 
 main()
 

@@ -1,0 +1,303 @@
+import scipy
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+import timeit
+import random
+
+
+# from energy import getEnergy
+# from energy import U_ij
+
+def makeGrid(N):  # nxn matrise
+    grid = np.zeros((N + 2, N + 2)).astype(np.int16)
+    n = len(grid)
+    grid[int(np.round(n / 2)), int(np.round(n / 2 - N / 2)): int(np.round(n / 2 - N / 2)) + N] = np.linspace(1, N,
+                                                                                                             N).astype(
+        np.int16)
+    return grid
+
+
+def findX(grid, x):
+    pos = np.argwhere(grid == x)[0]
+    col = pos[1]
+    row = pos[0]
+    return row, col
+
+
+def rigid_rot(grid, x, lengde):
+    if (x > math.floor((lengde / 2) + 1)):
+        rot = grid.copy()
+        rot[rot <= x] = 0
+
+        rigid = grid.copy()
+        rigid[rigid > x] = 0
+    else:
+        rot = grid.copy()
+        rot[rot >= x] = 0
+
+        rigid = grid.copy()
+        rigid[rigid < x] = 0
+
+    return rot, rigid
+
+
+def isLegalTwist(twistedgrid, grid):
+    if np.count_nonzero(grid) == np.count_nonzero(twistedgrid):
+        bol = True
+    else:
+        bol = False
+    # print('bol = ', bol)
+    return bol
+
+
+def twist(grid, lengde, T):
+    twist = False
+    kb = (1.38064852) * 10**(-23)
+    B = 1/ (kb*T)
+
+    while (twist == False):
+        x = np.random.randint(1, lengde + 1, None)
+        n = np.random.randint(2, None)  # genererer clockwise
+
+        rot, rigid = rigid_rot(grid, x, lengde)
+
+        row_nonzero = np.count_nonzero(np.count_nonzero(rot, axis=1))  # teller rader med tall i
+        col_nonzero = np.count_nonzero(np.count_nonzero(rot, axis=0))  # teller kolonner med tall i
+
+        if row_nonzero > col_nonzero:
+            side = row_nonzero
+        else:
+            side = col_nonzero
+
+        row, col = findX(rigid, x)
+
+        twister = rot[(row - side):(row + side + 1), (col - side):(col + side + 1)]
+        twister = np.rot90(twister, (2 * n + 1))
+
+        rot[(row - side):(row + side + 1), (col - side):(col + side + 1)] = twister
+        twisted_matrix = np.add(rot, rigid)
+
+        twist = isLegalTwist(twisted_matrix, grid)
+
+    E2 = getEnergy(twisted_matrix, U_ij(15))
+    E1 = getEnergy(grid, U_ij(15))
+    r = np.random.uniform(0, 1)
+
+    if E2 <= E1:
+        return twisted_matrix
+    elif r < np.exp(-B * (E2 - E1)):
+        return twisted_matrix
+    else:
+        return grid
+
+
+def twist_execute(antall_twists, lengde, grid, T):
+    for i in range(np.round(antall_twists)):
+        temp = grid
+        twisted_matrix = twist(temp, lengde, T)
+        grid = twisted_matrix
+
+    return grid
+
+
+################ OPPGAVE 2 ###############
+
+def U_ij(lengde):
+    U_ij = np.zeros((lengde + 1, lengde + 1))
+
+    for i in range(1, (lengde + 1)):
+        for j in range(1, lengde + 1):
+            np.set_printoptions(precision=2)
+            U_ij[i, j] = np.random.uniform(low=(-3.47 * 10 ** (-21)), high=(-10.4 * 10 ** (-21)))
+            np.fill_diagonal(U_ij, 0)
+
+    for z in range(1, lengde):
+        U_ij[z, z] = 0
+        U_ij[z + 1, z] = 0
+        U_ij[z, z + 1] = 0
+
+    return U_ij
+
+
+def nearestNeighbours(grid, U, row, col):
+    n = len(grid)
+    if row + 1 < n:
+        E = + U[grid[row + 1, col], grid[row, col]]
+    if row - 1 >= 0:
+        E = E + U[grid[row - 1, col], grid[row, col]]
+    if col + 1 < n:
+        E = E + U[grid[row, col + 1], grid[row, col]]
+    if col - 1 >= 0:
+        E = E + U[grid[row, col - 1], grid[row, col]]
+    return E
+
+
+# dobbel for løkke, ytre løkke der T går fra 0 til 1500 K, og indreløkke kjører d(T) twists ved hver temp.
+
+def getEnergy(polymer, U):  # finner energien til hele polymeret
+    totalEnergy = 0
+    for x in range(1, 16):  # Går igjennom lengden på polymeret
+        row, col = findX(polymer, x)
+        NeighbourEnergy = nearestNeighbours(polymer, U, row, col)
+        totalEnergy += NeighbourEnergy
+    return totalEnergy*0.5
+
+
+def plotEnergy(grid):
+    start = timeit.timeit()
+
+    U = U_ij(15)
+    E = np.zeros(1500)
+    Temp = np.zeros(1500)
+
+    for T in range(1, 1500, 1):
+        antall_twists = np.floor(11000 * np.exp(-0.0015 * (T - 0.9999999))).astype(int)
+        polymer = twist_execute(antall_twists, 15, grid, T)
+        E = np.append(E, (getEnergy(polymer, U)))
+        Temp = np.append(Temp, (T - 0.9999999))
+        print('T',T)
+
+    plt.plot(Temp, E)
+    plt.title(r'Gjennomsnittsenergi, $\langle E \rangle$, som funksjon av temperatur, $T$')
+    plt.xlabel(r'$T$')
+    plt.ylabel(r'$\langle E \rangle$')
+    plt.legend()
+    plt.savefig('plotEnergy.pdf')
+    plt.show()
+
+    end = timeit.timeit()
+    print('Tid plotEnergy: ', (end - start) / 60, ' minutter\n')
+
+
+def plotBindingEnergy(grid):
+    start = timeit.timeit()
+
+    U = U_ij(15)
+    E = np.zeros(5000)
+    twists = np.zeros(5000)
+    temp = 0
+
+    for twist in range(1, 5000):
+        polymer = twist_execute(twist, 15, grid, temp)
+        E = np.append(E, (getEnergy(polymer, U)))
+        twists = np.append(twists, twist)
+        print('twist', twist)
+
+
+    plt.plot(twists, E)
+    plt.title(r'Bindingsenergi, $E$, som funksjon av antall tvister med $T=0$ K') # TITTEL
+    plt.xlabel('Antall tvister')
+    plt.ylabel(r'$E$')
+    plt.legend()
+    plt.savefig('plotBindingEnergy_0K.pdf') # NAVN
+    plt.show()
+
+    end = timeit.timeit()
+    print('\nTid plotBindingEnergy: ', (end - start) / 60, ' minutter\n')
+
+
+
+
+
+########## OPPGAVE 3 ##########
+
+def meanDiameter(grid15,grid30):
+    dmax15= 11000
+    dmax30 = 21000
+    s= -0.0015
+    L15 = np.zeros(75)
+    L30 = np.zeros(75)
+    for T in range(1,1500,20):
+        print(T, 'T1')
+        antall_twists15 = np.floor(dmax15 * np.exp(-s * T)).astype(int)
+        l15 = np.zeros(antall_twists15)
+        for i in range(antall_twists15):
+            twisted_grid15 = twist_execute(i, 15, grid15, T)
+            l15[i] = diameter(twisted_grid15, 15)
+        antall_twists30 = np.floor(dmax30 * np.exp(-s * T)).astype(int)
+        l30 = np.zeros(antall_twists30)
+        for i in range(antall_twists30):
+            twisted_grid30 = twist_execute(i, 30, grid30, T)
+            l30[i] = diameter(twisted_grid30, 30)
+        print(T, 'T2')
+
+        L15[T] = np.average(l15)
+        L30[T] = np.average(l30)
+
+    T = np.linspace(0,1500,20)
+
+    plt.plot(L15,T, label = '15 monomerer')
+    plt.plot(L30,T, label = '30 monomerer')
+    plt.title(r'Gjennomsnittsdiameter, $E$, som funksjon av temperatur $T$')  # TITTEL
+    plt.xlabel('Temperatur [K]')
+    plt.ylabel(r'$Energi [J]$')
+    plt.legend()
+    plt.savefig('plotMeanDiameter.pdf')  # NAVN
+    plt.show()
+
+
+def diameter(grid, lengde):
+    longest = 0
+    for i in range(1,lengde):
+        row1, col1 = findX(grid,i)
+        for j in range(i,lengde):
+            row2, col2 = findX(grid,j)
+            current = math.sqrt((row2-row1)**2+(col2-col1)**2)
+            if current > longest:
+                longest=current
+    return longest
+
+
+
+
+
+
+
+
+########## OPPGAVE 4 ##########
+
+def gradualCooling(grid):
+    #number_of_twists = np.linspace(0, 30000, 50) #definerer x-aksen
+
+    E = np.zeros(50)
+    lengde_polymer = 15
+    U = U_ij(lengde_polymer)
+
+
+    for T in range (1500,-30): #Finner energien for temperaturer som synker med 30K  fra 1500K til 0K
+        polymer=twist_execute(600,lengde_polymer,grid,T) #Tvister polymeret 600 ganger for hver temperatur
+        E = np.append(E, getEnergy(polymer,U))
+        twist = np.append(twist,600)
+
+
+    plt.plot(twist, E)
+    plt.title(r'Energi, $\langle E \rangle$ ved gradvis kjøling av protein, som funksjon av antall tvister $T$')
+    plt.xlabel(r'Antall tvister')
+    plt.ylabel(r'$\langle E \rangle$')
+    plt.legend()
+    plt.savefig('gradualCooling.pdf')
+    plt.show()
+
+
+
+
+def main():
+    polymer15 = makeGrid(15)
+    polymer30 = makeGrid(30)
+    print(meanDiameter(polymer15,polymer30))
+
+
+
+main()
+
+
+
+
+
+
+
+
+
+
+

@@ -105,20 +105,13 @@ def twist_execute(antall_twists, lengde, grid, T):
 
 
 def U_ij(N):
-    U_ij = np.zeros((N + 1, N + 1))
+    U = np.zeros((N + 1, N + 1))
 
-    for i in range(1, (N + 1)):
+    for i in range(1, N + 1):
         for j in range(1, N + 1):
-            np.set_printoptions(precision=2)
-            U_ij[i, j] = np.random.uniform(low=(-3.47 * 10 ** (-21)), high=(-10.4 * 10 ** (-21)))
-            np.fill_diagonal(U_ij, 0)
-
-    for z in range(1, N):
-        U_ij[z, z] = 0
-        U_ij[z + 1, z] = 0
-        U_ij[z, z + 1] = 0
-
-    return U_ij
+            if abs(i - j) > 1:
+                U[i][j] = np.random.uniform(-3.47 * 10 ** (-21), -10.4 * 10 ** (-21))
+    return U
 
 
 def d(T):
@@ -200,8 +193,8 @@ def plotBindingEnergy(grid):
     E = np.zeros(num_of_twists)
     twists = np.zeros(num_of_twists)
 
-    for twist in range(1, num_of_twists):
-        polymer = twist_execute(twist, 15, grid, T)
+    for twist in range(1, num_of_twists, 1):
+        polymer = twist_execute(twist, N, grid, T)
         E = np.append(E, (getEnergy(polymer)))
         twists = np.append(twists, twist)
         print('twist %i of %i' % (twist, num_of_twists))
@@ -224,7 +217,6 @@ def gradualCooling(polymer):
     temp_end = 0
     temp_step = -30
     num_of_twists = 600
-    N = 15
 
     x = round(temp_start / -temp_step)
     E = np.zeros(x * num_of_twists)
@@ -239,12 +231,12 @@ def gradualCooling(polymer):
             i += 1
         print('T = ', T)
 
-    plt.plot(twists, E, linewidth=.15)
+    plt.plot(twists, E, linewidth=.15, label='%i monomerer' %N)
     plt.title(r'Energi sfa. antall tvister, nedkjøling', fontsize=10)
     plt.xlabel(r'Antall tvister')
     plt.ylabel(r'$E$')
     plt.legend()
-    plt.savefig('4,1gradualCooling.pdf')
+    plt.savefig('4,1gradualCooling%imon.pdf' %N)
     plt.show()
 
 
@@ -255,7 +247,6 @@ def gradualCoolingMeanEnergy(polymer):
     temp_end = 0
     temp_step = -30
     num_of_twists = 600
-    lengde_polymer = 15
 
     E_temp = np.zeros(num_of_twists)  # Energi for en gitt T.
     x = round(temp_start / -temp_step)
@@ -266,7 +257,7 @@ def gradualCoolingMeanEnergy(polymer):
     # Lagrer energien for hver tvist ved gitt temperatur T.
     for T in range(temp_start, temp_end, temp_step):  # T går fra 1500 K til 0 K med steglengde -30 K.
         for tw in range(1, num_of_twists + 1):  # tw(ist) går fra 1 til 600.
-            polymer = twist_execute(1, lengde_polymer, polymer, T)
+            polymer = twist_execute(1, N, polymer, T)
             E_temp[i] = getEnergy(polymer)
             i += 1
         E_mean[j] = np.average(E_temp)
@@ -274,12 +265,12 @@ def gradualCoolingMeanEnergy(polymer):
         print('T = ', T)
         j += 1
 
-    plt.plot(temp_axis, E_mean, linewidth=1)
+    plt.plot(temp_axis, E_mean, linewidth=1, label='%i monomerer' %N)
     plt.title(r'Gjennomsnittsenergi sfa. temperatur, nedkjøling', fontsize=10)
     plt.xlabel(r'$T$')
     plt.ylabel(r'$\langle E \rangle$')
     plt.legend()
-    plt.savefig('4,2gradualCoolingMeanEnergy.pdf')
+    plt.savefig('4,2gradualCoolingMeanEnergy%imon.pdf' %N)
     plt.show()
 
 
@@ -295,9 +286,9 @@ grid = makeGrid(N)
 
 def main():
     #gradualCooling(grid)
-    gradualCoolingMeanEnergy(grid)
+    #gradualCoolingMeanEnergy(grid)
     #plotEnergy(grid)
-    #plotBindingEnergy(grid)
+    plotBindingEnergy(grid)
 
 
 main()

@@ -276,7 +276,7 @@ def gradualCoolingMeanEnergy(polymer):
 
 N = 15
 d_max = 15000
-s = 0.004
+s = 0.001
 Nt = 50
 T_end = 1500
 T_arr = np.arange(1e-7, T_end, T_end / Nt)
@@ -287,8 +287,8 @@ grid = makeGrid(N)
 def main():
     #gradualCooling(grid)
     #gradualCoolingMeanEnergy(grid)
-    #plotEnergy(grid)
-    plotBindingEnergy(grid)
+    plotEnergy(grid)
+    #plotBindingEnergy(grid)
 
 
 main()

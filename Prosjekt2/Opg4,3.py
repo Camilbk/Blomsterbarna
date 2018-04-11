@@ -1,14 +1,13 @@
 import numpy as np
 from Vitber.Prosjekt2.ny import *
-import math
 import matplotlib.pyplot as plt
 import time
 
 # From T = 0 to T = 1500, step 20
 
-def plotMeanDiameter():
+def plotMeanDiameterCooldown():
     start_t = time.time()
-    T = np.linspace(0.0001, 1500, 20)
+    T = np.linspace(1500, 0.00001, 20)
     meanDiameter15 = np.zeros(20)
     meanDiameter30 = np.zeros(20)
     dmax15 = 15000
@@ -19,14 +18,16 @@ def plotMeanDiameter():
     for temp in T:
         teller += 1
         print(temp, 'temp løkke')
-        antall_twists15 = 50 #int(np.floor(dmax15 * np.exp(-0.0015 * (temp - 0.999999))))
+        antall_twists15 = int(np.floor(dmax15 * np.exp(-0.0015 * (temp - 0.999999))))
         print(antall_twists15, 'twists for 15')
-        antall_twists30 =  50 #int(np.floor(dmax30 * np.exp(-0.0015 * (temp - 0.999999))))
+        antall_twists30 = int(np.floor(dmax30 * np.exp(-0.0015 * (temp - 0.999999))))
         print(antall_twists30, 'twists for 30 ')
         polymer15, diameter15 = twist_executeDiameter(antall_twists15, 15, makeGrid(15), temp )  #lager ny polymer for hver temperatur
         polymer30, diameter30 = twist_executeDiameter(antall_twists30, 30, makeGrid(30), temp)  # lager ny polymer for hver temperatur
         meanDiameter15[teller -1] = diameter15
         meanDiameter30[teller -1] = diameter30
+    meanDiameter15 = meanDiameter15[::-1]
+    meanDiameter30 = meanDiameter30[::-1]
 
     end_t = time.time()
     plt.figure(1)
@@ -48,7 +49,7 @@ def plotMeanDiameter():
     plt.ylabel(r"$\langle L \rangle$ ")
     plt.legend(loc="best")
     plt.grid()
-    print((start_t-end_t)/60 ,'min')
+    print((end_t -  start_t)/60 ,'min')
     plt.show()
 
 
@@ -74,7 +75,6 @@ def twist_executeDiameter(antall_twists,lengde,grid, T):
         meanDiameter[i] = calculateDiameter(grid, lengde)
     diameter = np.average(meanDiameter)
     return grid, diameter
-
 
 def twist(grid, lengde,T):
     twist = False
@@ -165,4 +165,5 @@ def isLegalTwist(twistedgrid, grid):
     return bol
 
 
-plotMeanDiameter()
+
+plotMeanDiameterCooldown()

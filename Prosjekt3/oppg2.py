@@ -14,11 +14,11 @@ yr = 3.2 * 10 ** 7       # Orbital period [s]
 G_const = 6.673e-11       # Gravitational constant [N (m/kg)^2]
 M = 1.9891e30       # Solar mass [kg]
 m = 2.4e23       # Mercury mass [kg]
-alpha = 0.011
+alpha = 1.1e-8
 C = (G_const * M * yr ** 2) / (AU ** 3)
 #print(C)
 
-t_max = 1  # t_max=1 Corresponds to one single complete orbit
+t_max = 0.2435549219  # t_max Corresponds to one single complete orbit
 dt = 0.0002
 N = int(t_max / dt)  # Number of steps
 
@@ -83,6 +83,22 @@ def Runge_Kutta(X0,V0):
         K_4RK[n] = 0.5 * m * (U_4RK[n + 1] ** 2 + V_4RK[n + 1] ** 2) ** 2
         P_4RK[n] = -(G_const * M * m / np.sqrt(X_4RK[n + 1] ** 2 + Y_4RK[n + 1] ** 2))
         total_velocity[n] = np.sqrt(U_4RK[n + 1] ** 2 + V_4RK[n + 1] ** 2)
+
+    if (t_max == 0.2435549219 ): #t_max = when Mercury has finished one orbit
+        # Find offset
+        print("\nSmall offset indicates closed orbit")
+        print("Offset in 'x': %0.3e - %0.7e = %0.7e" % (X_4RK[0], X_4RK[-1], X_4RK[N - 1] - X_4RK[0]))
+        print("Offset in 'y': %0.3e - %0.7e = %0.7e" % (Y_4RK[0], Y_4RK[-1], Y_4RK[N - 1] - Y_4RK[0]))
+        print("Total offset: %0.3e" % np.sqrt((X_4RK[0] - X_4RK[-1]) ** 2 + (Y_4RK[0] - Y_4RK[-1]) ** 2))
+
+        deltaTheta = (np.arctan(Y_4RK[-1]/X_4RK[-1])-np.arctan(Y_4RK[0]/X_4RK[0]))*(360/(2*np.pi))
+        print(deltaTheta)
+
+
+        # Find perihelion seperation:
+        r_perihelion = abs(min(Y_4RK))
+        print("\nThe parahelion seperation is %0.3f, compared to 0.967." % r_perihelion)
+
     '''''''''
     plt.figure()
     plt.title('Energy as a function of time')
@@ -119,6 +135,8 @@ def Runge_Kutta(X0,V0):
 
     return X_4RK,Y_4RK
 
+
+
 # Initial conditions
 MX0 = 0.47 #[AU]
 MV0 = 8.2 #[AU/yr]
@@ -130,8 +148,10 @@ EV0 = 2*np.pi
 Ex,Ey = Runge_Kutta(EX0,EV0)
 
 plt.figure()
-plt.title(r'Perihelion of Mercury, $\alpha = %f$' %alpha)
+plt.title(r'Perihelion of Mercury, $\alpha = %e$' %alpha)
 plt.plot(Mx, My, 'g', label = r'Mercury ($\epsilon=0.206$)',color = 'purple', linewidth = 0.5)
+plt.plot(Mx[0],My[0], 'ro', color = 'yellow')
+plt.plot(Mx[-1],My[-1],'ro', color = 'blue')
 plt.plot([0],[0],'ro', label='Sun')
 plt.plot(Ex, Ey, 'g', label = r'Earth ($\epsilon=0$)')
 plt.legend()

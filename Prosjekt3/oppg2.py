@@ -14,7 +14,6 @@ yr = 3.2 * 10 ** 7  # Orbital period [s]
 G_const = 6.673e-11  # Gravitational constant [N (m/kg)^2]
 M = 1.9891e30  # Solar mass [kg]
 m = 2.4e23  # Mercury mass [kg]
-alpha = 1.1e-8
 C = (G_const * M * yr ** 2) / (AU ** 3)
 
 t_max = 0.2435549219 + .1  # t_max Corresponds to one single complete orbit
@@ -22,7 +21,7 @@ dt = 0.0002
 N = int(t_max / dt)  # Number of steps
 
 
-def Runge_Kutta(X0, V0):
+def Runge_Kutta(X0, V0, alpha):
     X_4RK = np.zeros(N)
     Y_4RK = np.zeros(N)
     U_4RK = np.zeros(N)
@@ -52,6 +51,7 @@ def Runge_Kutta(X0, V0):
     V_4RK[0] = V0
     radius[0] = np.sqrt(V0 ** 2 + 0 ** 2)
     tid = 0
+    precession = 0
     trigger = False
     for n in range(N - 1):
 
@@ -92,28 +92,16 @@ def Runge_Kutta(X0, V0):
             print('n =', n)
         if trigger == True and radius[n] > radius[n + 1]:
             print('n =', n)
-
-            ''''# Find offset
-            print("\nSmall offset indicates closed orbit")
-            print("Offset in 'x': %0.3e - %0.7e = %0.7e" % (X_4RK[0], X_4RK[-1], X_4RK[N - 1] - X_4RK[0]))
-            print("Offset in 'y': %0.3e - %0.7e = %0.7e" % (Y_4RK[0], Y_4RK[-1], Y_4RK[N - 1] - Y_4RK[0]))
-            print("Total offset: %0.3e" % np.sqrt((X_4RK[0] - X_4RK[-1]) ** 2 + (Y_4RK[0] - Y_4RK[-1]) ** 2))
-
-            deltaTheta = (np.arctan(Y_4RK[-1] / X_4RK[-1]) - np.arctan(Y_4RK[0] / X_4RK[0])) * (360 / (2 * np.pi))
-            print(deltaTheta)
-
-            # Find perihelion seperation:
-            r_perihelion = abs(min(Y_4RK))
-            print("\nThe parahelion seperation is %0.3f, compared to 0.967." % r_perihelion)'''
-
             precession = np.arctan(Y_4RK[n] / X_4RK[n])
             print('precession pr Mercury orbit =', precession)
             print('Time =', tid, 'yr')
             break
 
+
+    #Plots
     '''''''''
     plt.figure()
-    plt.title('Energy as a function of tid')
+    plt.title('Energy as a function of time')
     plt.plot(time_vector, E_4RK)
     plt.ylabel("Energy [J]")
     plt.xlabel("Time [yr]")
@@ -121,7 +109,7 @@ def Runge_Kutta(X0, V0):
     plt.show()
 
     plt.figure()
-    plt.title('Potenial energy as a function of tid')
+    plt.title('Potenial energy as a function of time')
     plt.plot(time_vector, P_4RK)
     plt.ylabel("Energy [J]")
     plt.xlabel("Time [yr]")
@@ -129,7 +117,7 @@ def Runge_Kutta(X0, V0):
     plt.show()
 
     plt.figure()
-    plt.title('Kinetic energy as a function of tid')
+    plt.title('Kinetic energy as a function of time')
     plt.plot(time_vector, K_4RK)
     plt.ylabel("Energy [J]")
     plt.xlabel("Time [yr]")
@@ -137,7 +125,7 @@ def Runge_Kutta(X0, V0):
     plt.show()
 
     plt.figure()
-    plt.title('Speed as a function of tid')
+    plt.title('Speed as a function of time')
     plt.plot(time_vector, total_velocity)
     plt.ylabel("Speed [AU/yr]")
     plt.xlabel("Time [yr]")
@@ -145,30 +133,56 @@ def Runge_Kutta(X0, V0):
     plt.show()
     '''''''''''
 
-    return X_4RK, Y_4RK, tid
+    return X_4RK,Y_4RK,precession
 
 
-# Initial conditions Mercury
-MX0 = 0.47  # [AU]
-MV0 = 8.2  # [AU/yr]
-Mx, My, tid = Runge_Kutta(MX0, MV0)
 
-# Initial conditions Earth
+# Initial conditions
+alpha = 1.1e-8
+MX0 = 0.47 #[AU]
+MV0 = 8.2 #[AU/yr]
+Mx,My,theta= Runge_Kutta(MX0,MV0,alpha)
+
+
 EX0 = 1
-EV0 = 2 * np.pi
-N = int(tid / dt)
-Ex, Ey, tid = Runge_Kutta(EX0, EV0)
+EV0 = 2*np.pi
+Ex,Ey,theta = Runge_Kutta(EX0,EV0,alpha)
 
 plt.figure()
-plt.title(r'Perihelion of Mercury, $\alpha = %e$' % alpha)
-plt.plot(Mx, My, 'g', label=r'Mercury ($\epsilon=0.206$)', color='purple', linewidth=0.5)
-plt.plot(Mx[0], My[0], 'ro', color='yellow')
-plt.plot(Mx[-1], My[-1], 'ro', color='blue')
-plt.plot([0], [0], 'ro', label='Sun')
-plt.plot(Ex, Ey, 'g', label=r'Earth ($\epsilon=0$)')
+plt.title(r'Percession of Mercury, $\alpha = %e$' %alpha)
+plt.plot(Mx, My, 'g', label = r'Mercury ($\epsilon=0.206$)',color = 'purple', linewidth = 0.5)
+plt.plot(Mx[0],My[0], 'ro', color = 'yellow')
+plt.plot(Mx[-1],My[-1],'ro', color = 'blue')
+plt.plot([0],[0],'ro', label='Sun')
+plt.plot(Ex, Ey, 'g', label = r'Earth ($\epsilon=0$)')
 plt.legend()
 plt.xlabel(r"$x$ [AU]")
 plt.ylabel(r"$y$ [AU]")
-plt.axes().set_aspect('equal', 'datalim')
+plt.axes().set_aspect('equal','datalim')
 plt.grid()
 plt.show()
+
+
+
+#Record percession as function of alpha
+def percession():
+    alpha_vector = np.array([1.1e-8,1.1e-7,1.1e-6,1.1e-5,1.1e-4,1.1e-3,1.1e-2])
+    print('alphavec',alpha_vector)
+    percession_of_Mercury = np.zeros(len(alpha_vector))
+    for a in range (len(alpha_vector)): #run for each alpha
+        alpha2 = alpha_vector[a]
+        values = Runge_Kutta(0.47,8.2,alpha2) #Calculate orbit of Mercury
+        percession_of_Mercury[a] = values[2]
+        print('alpha = ',alpha2)
+        print("\nThe parahelion seperation is %0.3f"% percession_of_Mercury[a],'theta',values[2])
+
+
+    # plot per as func of alp
+    plt.plot(alpha_vector,percession_of_Mercury)
+    plt.title('The percession of Mercury as function of alpha')
+    plt.xlabel(r'alpha [$AU^2$]')
+    plt.ylabel('Percession of Mercury [degrees]')
+    plt.xlim(0,1.1e-2)
+    plt.show()
+
+percession()

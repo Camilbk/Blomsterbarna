@@ -80,21 +80,21 @@ def Runge_Kutta(X0,V0):
         V_4RK[n + 1] = V_4RK[n] + k_v1 / 6 + k_v2 / 3 + k_v3 / 3 + k_v4 / 6
 
         E_4RK[n] = 0.5 * (U_4RK[n + 1] ** 2 + V_4RK[n + 1] ** 2) - C / np.sqrt(X_4RK[n + 1] ** 2 + Y_4RK[n + 1] ** 2)
-        K_4RK[n] = 0.5 * m * (U_4RK[n + 1] ** 2 + V_4RK[n + 1] ** 2) ** 2
-        P_4RK[n] = -(G_const * M * m / np.sqrt(X_4RK[n + 1] ** 2 + Y_4RK[n + 1] ** 2))
+        K_4RK[n] = 0.5 * (U_4RK[n + 1] ** 2 + V_4RK[n + 1] ** 2)#0.5 * m * (U_4RK[n + 1] ** 2 + V_4RK[n + 1] ** 2) ** 2
+        P_4RK[n] = -C/ np.sqrt(X_4RK[n + 1] ** 2 + Y_4RK[n + 1] ** 2)
         total_velocity[n] = np.sqrt(U_4RK[n + 1] ** 2 + V_4RK[n + 1] ** 2)
 
 
 
 
     plt.figure()
-    plt.title('Energy as a function of time')
+    plt.title('Total energy as a function of time')
     plt.plot(time_vector, E_4RK)
     plt.ylabel("Energy [J]")
     plt.xlabel("Time [yr]")
     plt.grid()
     plt.show()
-
+    '''''''''''   
     plt.figure()
     plt.title('Potenial energy as a function of time')
     plt.plot(time_vector, P_4RK)
@@ -118,25 +118,14 @@ def Runge_Kutta(X0,V0):
     plt.xlabel("Time [yr]")
     plt.grid()
     plt.show()
-
+    '''''''''''
 
     return X_4RK,Y_4RK
 
     # If t_max was set to exactly one period, it will be interesting
     # to investigate whether or not the orbit is closed (planet returns
     # to its starting position)
-    '''
-    if (t_max == 1):
-        # Find offset
-        print("\nSmall offset indicates closed orbit")
-        print("Offset in 'x': %0.3e - %0.7e = %0.7e" % (X_4RK[0], X_4RK[-1], X_4RK[N - 1] - X_4RK[0]))
-        print("Offset in 'y': %0.3e - %0.7e = %0.7e" % (Y_4RK[0], Y_4RK[-1], Y_4RK[N - 1] - Y_4RK[0]))
-        print("Total offset: %0.3e" % np.sqrt((X_4RK[0] - X_4RK[-1]) ** 2 + (Y_4RK[0] - Y_4RK[-1]) ** 2))
 
-        # Find perihelion seperation:
-        r_perihelion = abs(min(Y_4RK))
-        print("\nThe parahelion seperation is %0.3f, compared to 0.967." % r_perihelion)
-    '''
 
 
 
@@ -160,8 +149,8 @@ def Euler_Cromer(X0,V0):
 
     for n in range (N-1):
         R_EC[n] = (X_EC[n]**2+Y_EC[n]**2)**(1/2)
-        U_EC[n+1] = U_EC[n]-(C*X_EC[n]/R_EC[n])*dt
-        V_EC[n+1] = V_EC[n]-(C*Y_EC[n]/R_EC[n])*dt
+        U_EC[n+1] = U_EC[n]-(C*X_EC[n]/R_EC[n]**3)*dt
+        V_EC[n+1] = V_EC[n]-(C*Y_EC[n]/R_EC[n]**3)*dt
         X_EC[n+1] = X_EC[n] + U_EC[n+1]*dt
         Y_EC[n+1] = Y_EC[n] + V_EC[n+1]*dt
 
@@ -172,8 +161,9 @@ def Euler_Cromer(X0,V0):
 
 
 
+
     '''''
-    Euler_Cromer(dt)
+    Euler_Cromer()
     plt.figure()
     plt.title('Euler-Cromer method')
     plt.plot(X_EC, Y_EC, 'g', [0], [0], 'ro')
@@ -215,7 +205,7 @@ def Euler_Cromer(X0,V0):
     plt.show()
     '''
 
-    return 0
+    return X_EC,Y_EC
 
 
 def Keplers_third_law():
@@ -223,25 +213,31 @@ def Keplers_third_law():
     a_p = np.array([0.39,0.72,1.0,1.52,5.20,9.54,19.19,30.06,39.53]) #Semimajor axis for all planets, Mercury to pluto
     T_p = np.zeros(len(a_p))
     for i in range (len(a_p)):
-        T_p[i]=np.sqrt(a_p[i]**3)
+        T_p[i]= a_p[i]
         print('T',T_p[i],'  ','a_p',a_p)
 
-    #Plotting log(T) against log(a)
+    #Plotting (T)^2 against log(a)^3
+    stigninstall = (T_p[4]-T_p[3])/(a_p[4]-a_p[3])
+    print('stigninstall=',stigninstall)
+
     plt.figure()
-    plt.plot(np.log(a_p),np.log(T_p),'ro')
-    plt.plot(np.log(a_p),np.log(T_p))
+    plt.plot((a_p),(T_p),'ro')
+    plt.plot((a_p),(T_p))
     plt.title('Keplers third law for all planets from Mercury to Pluto')
-    plt.xlabel('Semimajor axis log(a) [AU]')
-    plt.ylabel('Period log(T) [yr]')
+    plt.xlabel(r'Semimajor axis $a^3$  [AU]')
+    plt.ylabel(r'Period $T^2$ [yr]')
     plt.show()
 
 
+
 #Keplers_third_law()
+
 
 # Initial conditions
 EX0 = 1
 EV0 = 2*np.pi
 Ex,Ey = Runge_Kutta(EX0,EV0)
+EcX,EcY = Euler_Cromer(EX0,EV0)
 
 plt.figure()
 plt.title('4th order Runge-Kutta')
@@ -253,6 +249,24 @@ plt.ylabel(r"$y$ [AU]")
 plt.axes().set_aspect('equal','datalim')
 plt.grid()
 plt.show()
+
+plt.figure()
+plt.title('Euler-Cromer')
+plt.plot(EcX, EcY, 'g', label = r'Earth ($\epsilon=0$)')
+plt.plot([0],[0],'ro', label='Sun')
+plt.legend()
+plt.xlabel(r"$x$ [AU]")
+plt.ylabel(r"$y$ [AU]")
+plt.axes().set_aspect('equal','datalim')
+plt.grid()
+plt.show()
+
+
+
+
+
+
+
 
 
 

@@ -7,7 +7,7 @@ import time
 
 def plotMeanDiameterCooldown():
     start_t = time.time()
-    T = np.linspace(1500, 0.00001, 20)
+    T = np.linspace(1500, 0.00001, 500)
     meanDiameter15 = np.zeros(20)
     meanDiameter30 = np.zeros(20)
     dmax15 = 15000

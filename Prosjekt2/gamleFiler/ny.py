@@ -155,7 +155,7 @@ def plotEnergy(grid):
     E = np.zeros(1500)
     Temp = np.zeros(1500)
 
-    for T in range(1, 1500, 1):
+    for T in range(1, 1500, 500):
         antall_twists = np.floor(11000 * np.exp(-0.0015 * (T - 0.9999999))).astype(int)
         polymer = twist_execute(antall_twists, 15, grid, T)
         E = np.append(E, (getEnergy(polymer, U)))
@@ -237,7 +237,7 @@ def gradualCooling(grid):
 
 def main():
     polymer = makeGrid(15)
-    gradualCooling(polymer)
+    plotBindingEnergy(polymer)
 
 
 main()

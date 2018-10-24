@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 def polymersAfterCooldown():
     start_t = time.time()
-    T = np.linspace(1500, 0.00001, 75)
+    T = np.linspace(1500, 0.00001, 200)
     dmax15 = 15000
     dmax30 = 30000
     polymer15 = makeGrid(15)

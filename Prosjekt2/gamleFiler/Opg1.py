@@ -47,10 +47,12 @@ def isLegalTwist(twistedgrid, grid):
     return bol
 
 def twist(grid,x,lengde):
-    isLegalTwist = False
+    isLegal = False
     # x = np.randint #SKAL FINNE RANDOM TALL AV POLYMER
+    twisted_matrix = grid
 
-    while(not isLegalTwist):
+    while( not isLegalTwist(twisted_matrix, grid) ):
+        print("hei")
         rot,rigid=rigid_rot(grid,x,lengde)
 
         n = np.random.randint(2, size=1)  # clockwise
@@ -63,7 +65,7 @@ def twist(grid,x,lengde):
         else:
             side = col_nonzero
 
-        row,col =findX(rigid,x)
+        row,col = findX(rigid,x)
 
 
         twister = rot[(row-side):(row+side+1),(col-side):(col+side+1)]
@@ -72,16 +74,15 @@ def twist(grid,x,lengde):
         rot[(row - side):(row + side + 1), (col - side):(col + side + 1)] = twister
         twisted_matrix = np.add(rot,rigid)
 
-        isLegalTwist = isLegalTwist(twisted_matrix,grid)
-
+        isLegal = isLegalTwist(twisted_matrix,grid)
 
     return twisted_matrix
 
 
 
 def main():
-    lengde=11
-    grid=makeGrid(lengde)
+    lengde = 11
+    grid = makeGrid(lengde)
     #grid[grid > 5] = 0
     #print(grid)
     print(twist(grid,4,11))
